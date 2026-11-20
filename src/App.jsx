@@ -1,11 +1,11 @@
-import { useState, useRef } from 'react';
-import { RefreshCw, Utensils, RotateCcw, WifiOff } from 'lucide-react';
+import { useEffect, useRef } from 'react';
 import { Header } from './components/Header';
 import { FilterPanel } from './components/FilterPanel';
 import { VideoCard } from './components/VideoCard';
 import { VideoCardSkeleton } from './components/VideoCardSkeleton';
 import { TheaterModal } from './components/TheaterModal';
 import { Footer } from './components/Footer';
+import { DURATION_OPTIONS } from './data/mockVideos';
 import { useVideoRecommendations } from './hooks/useVideoRecommendations';
 
 export function App() {
@@ -33,11 +33,55 @@ export function App() {
     resetSearch,
   } = useVideoRecommendations();
 
-  // Estado puramente visual de UI (colapsar filtros en móvil al ver resultados)
-  const [isCollapsedMobile, setIsCollapsedMobile] = useState(false);
   const resultsRef = useRef(null);
+  const historyRef = useRef(null);
+  const deckRef = useRef(null);
+  const quickDurationTriggeredRef = useRef(false);
 
-  const scrollResultsIntoViewOnMobile = () => {
+  const activeDurationLabel =
+    DURATION_OPTIONS.find((d) => d.id === filters.duration)?.label || '10–20 min';
+
+  const totalMinutes = Math.round(
+    results.reduce((acc, v) => acc + (v.durationSeconds || 0), 0) / 60
+  );
+
+  // Atajo [ Espacio ] de escritorio para barajar 3 opciones
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.code !== 'Space' || !hasSearched || activeVideo || isLoading) return;
+      const tag = e.target?.tagName;
+      if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON' || tag === 'A') {
+        return;
+      }
+      e.preventDefault();
+      rotateThree();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [hasSearched, activeVideo, isLoading, rotateThree]);
+
+  useEffect(() => {
+    if (!quickDurationTriggeredRef.current) return;
+    quickDurationTriggeredRef.current = false;
+    findVideos();
+    if (window.innerWidth < 768) {
+      requestAnimationFrame(() => {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      });
+    }
+  }, [filters.duration, findVideos]);
+
+  const handleSelectQuickDuration = (nextDuration) => {
+    if (nextDuration === filters.duration) {
+      findVideos();
+      return;
+    }
+    quickDurationTriggeredRef.current = true;
+    setDuration(nextDuration);
+  };
+
+  const handleFindVideos = () => {
+    findVideos();
     if (window.innerWidth < 768) {
       requestAnimationFrame(() => {
         resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -45,170 +89,269 @@ export function App() {
     }
   };
 
-  const handleFindVideos = () => {
-    setIsCollapsedMobile(true);
-    scrollResultsIntoViewOnMobile();
-    findVideos();
+  const handleScrollToHistory = () => {
+    historyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   };
 
-  const handleRotateThree = () => {
-    setIsCollapsedMobile(true);
-    scrollResultsIntoViewOnMobile();
-    rotateThree();
-  };
-
-  const handleResetHome = () => {
-    setIsCollapsedMobile(false);
-    resetSearch();
+  const handleFocusFilters = () => {
+    deckRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
 
   return (
-    <div className="relative min-h-screen flex flex-col bg-[var(--bg-canvas)] text-[var(--text-primary)]">
-      {/* Capas ambientales Late-Night Cinema */}
-      <div className="cinema-backdrop" aria-hidden="true" />
-      <div className="cinema-grain" aria-hidden="true" />
-
+    <div className="bg-background text-on-surface antialiased min-h-screen flex flex-col selection:bg-primary selection:text-on-primary">
       <Header
+        activeDuration={filters.duration}
         seenCount={seenCount}
         hasResults={hasSearched}
-        onResetHome={handleResetHome}
+        onSelectQuickDuration={handleSelectQuickDuration}
+        onResetHome={resetSearch}
+        onScrollToHistory={handleScrollToHistory}
       />
 
-      <main className="relative z-10 flex-1 flex flex-col justify-center py-3 sm:py-5 gap-5 sm:gap-6">
-        <FilterPanel
-          duration={filters.duration}
-          onDurationChange={setDuration}
-          vibes={filters.vibes}
-          onToggleVibe={toggleVibe}
-          topic={filters.topic}
-          onTopicChange={setTopic}
-          language={filters.language}
-          onLanguageChange={setLanguage}
-          onSubmit={handleFindVideos}
-          isLoading={isLoading}
-          hasResults={hasSearched}
-          isCollapsedMobile={isCollapsedMobile}
-          onToggleCollapseMobile={() => setIsCollapsedMobile((prev) => !prev)}
-        />
-
-        {/* Vista previa / Estado inicial sin ruido */}
-        {!hasSearched && (
-          <section
-            aria-label="Guía rápida"
-            className="w-full max-w-6xl mx-auto px-4 sm:px-6"
-          >
-            <div className="rounded-2xl border border-dashed border-[var(--border-subtle)] bg-[var(--bg-surface)]/40 px-5 py-8 sm:py-10 text-center">
-              <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full border border-[var(--border-warm)]/40 bg-[rgba(245,158,11,0.08)]">
-                <Utensils className="h-5 w-5 text-[var(--accent-amber)]" aria-hidden="true" />
-              </div>
-              <p className="font-display text-lg sm:text-xl text-[var(--text-primary)]">
-                Tu plato está listo. Solo falta qué poner de fondo.
-              </p>
-              <p className="mt-1.5 max-w-md mx-auto text-xs sm:text-sm text-[var(--text-secondary)]">
-                Ajusta el tiempo de tu comida y pulsa{' '}
-                <strong className="font-semibold text-[var(--accent-amber)]">
-                  Encontrar qué ver
-                </strong>{' '}
-                para recibir 3 opciones listas para reproducir.
-              </p>
-            </div>
-          </section>
-        )}
-
-        {/* Vista de Resultados (Máximo 3 tarjetas simultáneas + Skeleton loaders) */}
-        {hasSearched && (
-          <section
-            ref={resultsRef}
-            aria-label="Videos recomendados"
-            className="w-full max-w-6xl mx-auto px-4 sm:px-6 space-y-4"
-          >
-            {isLoading ? (
+      <main className="w-full flex-1 pt-20 bg-background">
+        <div className="max-w-[1280px] mx-auto px-margin md:px-margin-tablet lg:px-margin-desktop py-space-lg">
+          <div className="flex flex-col w-full">
+            <div className="relative w-full overflow-hidden">
+              {/* Top Soft Ambient Spotlight */}
               <div
-                aria-busy="true"
-                aria-label="Cargando recomendaciones de YouTube"
-                className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5"
-              >
-                {[0, 1, 2].map((idx) => (
-                  <VideoCardSkeleton key={idx} index={idx} />
-                ))}
-              </div>
-            ) : (
-              <>
-                {fallbackNote && results.length > 0 && (
-                  <div
-                    role="status"
-                    className="flex items-center justify-center sm:justify-start gap-2 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface)]/80 px-3.5 py-2 text-xs text-[var(--text-secondary)]"
-                  >
-                    <WifiOff
-                      className="h-3.5 w-3.5 shrink-0 text-[var(--accent-amber)]"
-                      aria-hidden="true"
-                    />
-                    <span>{fallbackNote}</span>
-                  </div>
-                )}
+                aria-hidden="true"
+                className="pointer-events-none absolute -top-24 left-1/2 -translate-x-1/2 w-[720px] h-[320px] bg-gradient-to-b from-primary-container/20 via-secondary-container/10 to-transparent blur-[110px] rounded-full opacity-60"
+              />
 
-                {results.length > 0 ? (
-                  <>
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 sm:gap-5">
-                      {results.slice(0, 3).map((video, idx) => (
-                        <VideoCard
-                          key={video.id}
-                          video={video}
-                          index={idx}
-                          onWatch={watchVideo}
-                          onDismiss={dismissVideo}
-                        />
-                      ))}
+              {/* MAIN COMPACT CONTROL DECK */}
+              <div ref={deckRef}>
+                <FilterPanel
+                  duration={filters.duration}
+                  onDurationChange={setDuration}
+                  vibes={filters.vibes}
+                  onToggleVibe={toggleVibe}
+                  topic={filters.topic}
+                  onTopicChange={setTopic}
+                  language={filters.language}
+                  onLanguageChange={setLanguage}
+                  onSubmit={handleFindVideos}
+                  isLoading={isLoading}
+                />
+              </div>
+
+              {/* Estado inicial antes de la primera búsqueda */}
+              {!hasSearched && (
+                <section
+                  aria-label="Bienvenida"
+                  className="relative z-10 w-full mb-space-xl rounded-DEFAULT bg-surface-container-low/75 border border-white/5 px-space-lg py-space-xl text-center shadow-lg"
+                >
+                  <div className="mx-auto mb-3 w-12 h-12 rounded-full bg-amber-500/10 border border-amber-500/30 flex items-center justify-center">
+                    <span className="material-symbols-outlined text-[24px] text-amber-400">
+                      restaurant
+                    </span>
+                  </div>
+                  <p className="font-headline-sm text-[18px] text-on-surface font-semibold">
+                    Tu plato está listo. Solo falta qué poner de fondo.
+                  </p>
+                  <p className="mt-1.5 max-w-md mx-auto text-[13px] text-on-surface-variant">
+                    Elige la duración de tu comida y pulsa{' '}
+                    <strong className="text-amber-300 font-semibold">
+                      Buscar Video Perfecto
+                    </strong>{' '}
+                    para recibir 3 opciones listas para reproducir sin salir de la página.
+                  </p>
+                </section>
+              )}
+
+              {/* CONTEXT BANNER & COUNTER + 3-COLUMN GRID */}
+              {hasSearched && (
+                <div ref={resultsRef}>
+                  <section
+                    aria-label="Resumen de resultados"
+                    className="flex flex-col md:flex-row md:items-end justify-between gap-space-sm mb-space-lg"
+                  >
+                    <div>
+                      <div className="flex items-center gap-2 text-[10px] text-amber-400 uppercase tracking-widest mb-1 font-bold">
+                        <span className="w-2 h-2 rounded-full bg-red-500 animate-ping" />
+                        Menú Express: {isLoading ? '...' : `${results.length} Videos`}
+                      </div>
+                      <p className="font-headline-sm text-[18px] text-on-surface font-semibold tracking-tight">
+                        {isLoading
+                          ? `Preparando opciones para tus ${activeDurationLabel}...`
+                          : `${results.length} recomendaciones para tus ${activeDurationLabel} de comida`}
+                      </p>
+                      <p className="text-[14px] text-on-surface-variant">
+                        Sin algoritmos infinitos ni desplazamientos lentos. Tu comida no se enfría.
+                      </p>
                     </div>
 
-                    {/* Botón general debajo de las tarjetas */}
-                    <div className="flex justify-center pt-1">
+                    {/* Quick Session Indicator */}
+                    <div className="flex items-center gap-space-md bg-surface-container-high/60 border border-amber-500/20 px-space-md py-2 rounded-full shrink-0 self-start md:self-auto">
+                      <span className="text-[10px] tracking-wider text-amber-300 font-bold flex items-center gap-1 uppercase">
+                        <span className="material-symbols-outlined text-[15px] text-amber-400">
+                          timer
+                        </span>
+                        {activeDurationLabel} seleccionados
+                      </span>
+                      {totalMinutes > 0 && !isLoading && (
+                        <>
+                          <span className="w-1 h-3 rounded-full bg-surface-variant" />
+                          <span className="text-[10px] tracking-wider text-on-surface-variant font-bold flex items-center gap-1 uppercase">
+                            <span className="material-symbols-outlined text-[15px] text-red-400">
+                              hd
+                            </span>
+                            Total: {totalMinutes} min
+                          </span>
+                        </>
+                      )}
+                    </div>
+                  </section>
+
+                  {/* Aviso discreto cuando hay fallback offline */}
+                  {!isLoading && fallbackNote && results.length > 0 && (
+                    <div
+                      role="status"
+                      className="mb-space-md flex items-center gap-2 rounded-full bg-surface-container-low border border-white/10 px-4 py-2 text-[12px] text-on-surface-variant w-fit"
+                    >
+                      <span className="material-symbols-outlined text-[16px] text-amber-400">
+                        cloud_off
+                      </span>
+                      <span>{fallbackNote}</span>
+                    </div>
+                  )}
+
+                  {/* 3-COLUMN VIDEO CARD GRID */}
+                  {isLoading ? (
+                    <section
+                      aria-busy="true"
+                      aria-label="Cargando recomendaciones de YouTube"
+                      className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter-desktop mb-space-xl"
+                    >
+                      {[0, 1, 2].map((idx) => (
+                        <VideoCardSkeleton key={idx} index={idx} />
+                      ))}
+                    </section>
+                  ) : results.length > 0 ? (
+                    <>
+                      <section
+                        aria-label="Videos recomendados"
+                        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-gutter-desktop mb-space-xl"
+                      >
+                        {results.slice(0, 3).map((video, idx) => (
+                          <VideoCard
+                            key={video.id}
+                            video={video}
+                            index={idx}
+                            onWatch={watchVideo}
+                            onDismiss={dismissVideo}
+                          />
+                        ))}
+                      </section>
+
+                      {/* SHUFFLE RE-ROLL CONTROLS */}
+                      <section className="flex flex-col items-center justify-center gap-space-sm mb-space-xl">
+                        <button
+                          id="shuffle-btn"
+                          type="button"
+                          onClick={rotateThree}
+                          disabled={isLoading}
+                          className="group relative px-space-xl py-3 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 text-black font-headline-sm text-[16px] font-bold flex items-center gap-space-sm shadow-[0_4px_24px_rgba(245,158,11,0.38)] hover:brightness-110 transition-all active:scale-95 disabled:opacity-60 cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-[22px] text-black group-hover:rotate-180 transition-transform duration-500">
+                            casino
+                          </span>
+                          <span className="tracking-tight font-bold">
+                            Barajar 3 opciones nuevas
+                          </span>
+                          <span className="material-symbols-outlined text-[18px] text-black group-hover:translate-x-1 transition-transform">
+                            arrow_forward
+                          </span>
+                        </button>
+
+                        <p className="text-[12px] text-on-surface-variant/80 flex items-center gap-1.5">
+                          <span>O presiona la tecla</span>
+                          <kbd className="px-2 py-0.5 rounded bg-surface-container font-mono text-[11px] text-amber-300 font-semibold border border-white/5 shadow-inner">
+                            [ Espacio ]
+                          </kbd>
+                          <span>para cambiar al instante</span>
+                        </p>
+                      </section>
+                    </>
+                  ) : (
+                    <section className="rounded-DEFAULT bg-surface-container-low border border-white/5 px-space-lg py-space-xl text-center space-y-3 mb-space-xl">
+                      <p className="font-headline-sm text-[18px] text-on-surface font-semibold">
+                        {exhaustedAll
+                          ? '¡Ya viste o descartaste todo el menú disponible!'
+                          : 'No quedan más opciones sin ver con esta combinación.'}
+                      </p>
+                      <p className="text-[13px] text-on-surface-variant max-w-md mx-auto">
+                        Limpia tu historial de vistos para volver a llenar la mesa con nuevos videos.
+                      </p>
                       <button
                         type="button"
-                        onClick={handleRotateThree}
-                        disabled={isLoading}
-                        className="inline-flex items-center gap-2 rounded-xl border border-[var(--border-hover)] bg-[var(--bg-surface)] px-5 py-2.5 text-sm font-semibold text-[var(--text-primary)] shadow-md hover:border-[var(--accent-amber)] hover:bg-[var(--bg-surface-elevated)] active:scale-[0.99] disabled:opacity-60 transition-all cursor-pointer"
+                        onClick={clearAndSearch}
+                        className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-amber-500 to-amber-600 px-5 py-2.5 text-[13px] font-bold text-black hover:brightness-110 transition-all cursor-pointer"
                       >
-                        <RefreshCw
-                          aria-hidden="true"
-                          className={`h-4 w-4 text-[var(--accent-amber)] ${
-                            isLoading ? 'animate-spin' : ''
-                          }`}
-                        />
-                        <span>Cambiar las 3 opciones</span>
+                        <span className="material-symbols-outlined text-[18px]">
+                          restart_alt
+                        </span>
+                        <span>Limpiar historial y mostrar 3 nuevos</span>
                       </button>
-                    </div>
-                  </>
-                ) : (
-                  <div className="rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] px-5 py-9 text-center space-y-3">
-                    <p className="font-display text-lg text-[var(--text-primary)]">
-                      {exhaustedAll
-                        ? '¡Ya viste o descartaste todo el menú disponible!'
-                        : 'No quedan más opciones sin ver con esta combinación.'}
-                    </p>
-                    <p className="text-xs sm:text-sm text-[var(--text-secondary)] max-w-md mx-auto">
-                      Limpia tu historial de vistos para volver a llenar la mesa con nuevos videos.
-                    </p>
-                    <button
-                      type="button"
-                      onClick={clearAndSearch}
-                      className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--accent-amber)] to-[var(--accent-ember)] px-4 py-2 text-xs sm:text-sm font-bold text-[#140C05] hover:brightness-110 transition-all cursor-pointer"
-                    >
-                      <RotateCcw className="h-4 w-4" aria-hidden="true" />
-                      <span>Limpiar historial y mostrar 3 nuevos</span>
-                    </button>
+                    </section>
+                  )}
+                </div>
+              )}
+
+              {/* CLEAN STREAMLINED SESSION STATUS BAR */}
+              <section
+                ref={historyRef}
+                aria-label="Estado de sesión e historial"
+                className="w-full bg-surface-container-lowest/80 rounded-DEFAULT p-space-md flex flex-col sm:flex-row items-center justify-between gap-space-md border border-white/5"
+              >
+                <div className="flex items-center gap-space-md flex-wrap justify-center sm:justify-start">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[16px] text-amber-400">
+                      check_circle
+                    </span>
+                    <span className="text-[12px] text-on-surface font-semibold">
+                      Historial de la sesión:{' '}
+                      <strong className="text-amber-400 font-bold">
+                        {seenCount} {seenCount === 1 ? 'video visto' : 'videos vistos'}
+                      </strong>
+                    </span>
                   </div>
+                  <span className="hidden md:inline text-surface-variant">•</span>
+                  <span className="text-[12px] text-on-surface-variant flex items-center gap-1">
+                    <span className="material-symbols-outlined text-[15px] text-red-500">
+                      restaurant_menu
+                    </span>
+                    Modo comedor activo — Cero algoritmos infinitos, solo 3 opciones.
+                  </span>
+                </div>
+
+                {justCleared ? (
+                  <span className="inline-flex items-center gap-1.5 px-space-md py-1.5 rounded-full bg-surface-container text-secondary text-[11px] font-bold shrink-0">
+                    <span className="material-symbols-outlined text-[15px]">check</span>
+                    <span>Historial limpiado</span>
+                  </span>
+                ) : (
+                  <button
+                    id="clear-history-btn"
+                    type="button"
+                    onClick={clearHistory}
+                    disabled={seenCount === 0}
+                    className="flex items-center gap-1.5 px-space-md py-1.5 rounded-full bg-surface-container text-amber-400 hover:text-amber-300 hover:bg-surface-container-high text-[11px] font-bold transition-colors shrink-0 disabled:opacity-45 disabled:pointer-events-none cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-[15px]">
+                      delete_sweep
+                    </span>
+                    <span>Limpiar historial de vistos</span>
+                  </button>
                 )}
-              </>
-            )}
-          </section>
-        )}
+              </section>
+            </div>
+          </div>
+        </div>
       </main>
 
       <Footer
-        seenCount={seenCount}
-        justCleared={justCleared}
-        onClearHistory={clearHistory}
+        onResetHome={resetSearch}
+        onFocusFilters={handleFocusFilters}
       />
 
       {/* Reproductor modal / teatro integrado */}

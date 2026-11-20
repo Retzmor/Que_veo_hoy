@@ -1,5 +1,4 @@
 import { useEffect, useRef } from 'react';
-import { X, Tv, Clock, ExternalLink } from 'lucide-react';
 
 export function TheaterModal({ video, onClose }) {
   const closeButtonRef = useRef(null);
@@ -40,26 +39,28 @@ export function TheaterModal({ video, onClose }) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="theater-video-title"
-      className="animate-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-[var(--bg-theater)] backdrop-blur-md p-3 sm:p-6"
+      className="animate-modal-backdrop fixed inset-0 z-50 flex items-center justify-center bg-black/90 backdrop-blur-md p-3 sm:p-6"
       onClick={onClose}
     >
       <div
-        className="animate-modal-panel relative w-full max-w-4xl overflow-hidden rounded-2xl border border-[var(--border-warm)]/60 bg-[var(--bg-surface)] shadow-[0_30px_90px_rgba(0,0,0,0.85)]"
+        className="animate-modal-panel relative w-full max-w-4xl overflow-hidden rounded-2xl border border-amber-500/30 bg-surface-container-low shadow-[0_30px_90px_rgba(0,0,0,0.85)]"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cabecera del modo teatro */}
-        <div className="flex items-start justify-between gap-4 border-b border-[var(--border-subtle)] px-4 sm:px-5 py-3.5">
+        <div className="flex items-start justify-between gap-4 border-b border-white/10 px-4 sm:px-5 py-3.5 bg-surface-container-lowest/70">
           <div className="min-w-0 space-y-1">
-            <div className="flex flex-wrap items-center gap-2 text-xs text-[var(--text-secondary)]">
-              <span className="inline-flex items-center gap-1 font-medium text-[var(--accent-amber)]">
-                <Tv className="h-3.5 w-3.5" />
+            <div className="flex flex-wrap items-center gap-2 text-xs text-on-surface-variant">
+              <span className="inline-flex items-center gap-1 font-semibold text-amber-300">
+                <span className="material-symbols-outlined text-[15px]">tv</span>
                 {channelName}
               </span>
               {durationLabel && (
                 <>
                   <span aria-hidden="true">·</span>
-                  <span className="font-mono-time inline-flex items-center gap-1">
-                    <Clock className="h-3 w-3" />
+                  <span className="inline-flex items-center gap-1 tabular-nums text-on-surface">
+                    <span className="material-symbols-outlined text-[14px] text-amber-400">
+                      schedule
+                    </span>
                     {durationLabel}
                   </span>
                 </>
@@ -67,7 +68,7 @@ export function TheaterModal({ video, onClose }) {
             </div>
             <h2
               id="theater-video-title"
-              className="text-sm sm:text-base font-semibold text-[var(--text-primary)] line-clamp-2"
+              className="font-headline-sm text-sm sm:text-base font-semibold text-on-surface line-clamp-2"
             >
               {video.title}
             </h2>
@@ -78,9 +79,9 @@ export function TheaterModal({ video, onClose }) {
             type="button"
             onClick={onClose}
             aria-label="Cerrar reproductor"
-            className="shrink-0 inline-flex items-center justify-center rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)] p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-hover)] transition-colors cursor-pointer"
+            className="shrink-0 inline-flex items-center justify-center rounded-full border border-white/10 bg-surface-container-high p-2 text-on-surface-variant hover:text-on-surface hover:border-amber-500/40 transition-colors cursor-pointer"
           >
-            <X className="h-4 w-4" />
+            <span className="material-symbols-outlined text-[18px]">close</span>
           </button>
         </div>
 
@@ -97,16 +98,16 @@ export function TheaterModal({ video, onClose }) {
         </div>
 
         {/* Barra inferior discreta */}
-        <div className="flex flex-wrap items-center justify-between gap-3 bg-[var(--bg-canvas)]/70 px-4 sm:px-5 py-2.5 text-xs text-[var(--text-secondary)]">
+        <div className="flex flex-wrap items-center justify-between gap-3 bg-surface-container-lowest px-4 sm:px-5 py-2.5 text-xs text-on-surface-variant">
           <span>¡Buen provecho! Guardado en tu historial para no repetirlo.</span>
           <a
             href={watchUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-1 text-[var(--accent-amber)] hover:underline"
+            className="inline-flex items-center gap-1 text-amber-400 hover:underline font-semibold"
           >
             <span>Abrir en YouTube</span>
-            <ExternalLink className="h-3 w-3" />
+            <span className="material-symbols-outlined text-[14px]">open_in_new</span>
           </a>
         </div>
       </div>

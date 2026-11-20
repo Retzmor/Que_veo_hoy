@@ -1,31 +1,33 @@
-import { Trash2, Check } from 'lucide-react';
-
-export function Footer({ seenCount, justCleared, onClearHistory }) {
+export function Footer({ onResetHome, onFocusFilters }) {
   return (
-    <footer className="relative z-10 w-full max-w-6xl mx-auto px-4 sm:px-6 py-4 mt-auto flex flex-col sm:flex-row items-center justify-between gap-2 text-xs text-[var(--text-muted)] border-t border-[var(--border-subtle)]/60">
-      <p className="text-center sm:text-left">
-        ¿Qué Veo Hoy? · Selección rápida sin algoritmo infinito.
-      </p>
-
-      <div className="flex items-center gap-3">
-        {justCleared ? (
-          <span className="inline-flex items-center gap-1 text-[var(--accent-amber)] font-medium">
-            <Check className="h-3.5 w-3.5" />
-            Historial limpio
+    <footer className="w-full bg-surface-container-lowest mt-space-xl py-space-lg border-t border-white/5">
+      <div className="max-w-[1280px] mx-auto px-margin md:px-margin-tablet lg:px-margin-desktop flex flex-col sm:flex-row items-center justify-between gap-space-md text-[12px] text-on-surface-variant">
+        <div className="flex items-center gap-space-sm text-center sm:text-left">
+          <span className="font-headline-sm text-[14px] text-on-surface font-semibold">
+            ¿Qué Veo Hoy?
           </span>
-        ) : (
+          <span>— Cero fatiga de decisión para tus comidas.</span>
+        </div>
+
+        <div className="flex items-center gap-space-lg">
           <button
             type="button"
-            onClick={onClearHistory}
-            disabled={seenCount === 0}
-            className="inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-[var(--text-muted)] hover:text-[var(--text-secondary)] disabled:opacity-45 disabled:pointer-events-none transition-colors cursor-pointer"
+            onClick={onResetHome}
+            className="hover:text-primary transition-colors cursor-pointer"
           >
-            <Trash2 className="h-3.5 w-3.5" />
-            <span>
-              Limpiar historial de vistos{seenCount > 0 ? ` (${seenCount})` : ''}
-            </span>
+            Generador
           </button>
-        )}
+          <button
+            type="button"
+            onClick={onFocusFilters}
+            className="hover:text-primary transition-colors cursor-pointer"
+          >
+            Preferencias
+          </button>
+          <span className="text-[10px] font-bold tracking-wider uppercase text-on-surface-variant/60">
+            YouTube API Ready
+          </span>
+        </div>
       </div>
     </footer>
   );

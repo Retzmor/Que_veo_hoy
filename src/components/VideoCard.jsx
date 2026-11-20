@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Play, X, Tv } from 'lucide-react';
 import { VIBE_CATEGORIES } from '../data/mockVideos';
 
 const THUMB_QUALITIES = ['maxresdefault', 'hqdefault', 'mqdefault'];
@@ -7,6 +6,7 @@ const THUMB_QUALITIES = ['maxresdefault', 'hqdefault', 'mqdefault'];
 export function VideoCard({ video, index, onWatch, onDismiss }) {
   const [thumbStep, setThumbStep] = useState(0);
   const [usePrimaryThumb, setUsePrimaryThumb] = useState(Boolean(video.thumbnail));
+  const [savedForLater, setSavedForLater] = useState(false);
 
   const fallbackUrl = `https://i.ytimg.com/vi/${video.id}/${THUMB_QUALITIES[thumbStep]}.jpg`;
   const thumbUrl = usePrimaryThumb && video.thumbnail ? video.thumbnail : fallbackUrl;
@@ -15,7 +15,8 @@ export function VideoCard({ video, index, onWatch, onDismiss }) {
   const durationLabel = video.durationFormatted || video.duration || '00:00';
   const languageLabel = video.language === 'es' ? 'Español' : 'Inglés';
   const categoryLabel =
-    VIBE_CATEGORIES.find((c) => c.id === video.category)?.label ?? '';
+    VIBE_CATEGORIES.find((c) => c.id === video.category)?.label ||
+    languageLabel;
 
   const fallbackThumb = () => {
     if (usePrimaryThumb) {
@@ -28,84 +29,119 @@ export function VideoCard({ video, index, onWatch, onDismiss }) {
   return (
     <article
       style={{ animationDelay: `${index * 55}ms` }}
-      className="animate-card-enter group flex flex-col overflow-hidden rounded-2xl border border-[var(--border-subtle)] bg-[var(--bg-surface)] transition-all duration-200 hover:border-[var(--border-warm)] hover:shadow-[0_14px_36px_rgba(0,0,0,0.55)]"
+      className="animate-card-enter video-card group flex flex-col justify-between bg-surface-container-low rounded-DEFAULT p-space-md hover:bg-surface-container transition-all duration-300 hover:-translate-y-1.5 shadow-lg shadow-surface-container-lowest/80 border border-white/5"
     >
-      {/* Miniatura 16:9 */}
-      <div className="relative aspect-video w-full overflow-hidden bg-[#0A0807]">
-        <img
-          src={thumbUrl}
-          alt={`Miniatura de ${video.title}`}
-          width={480}
-          height={270}
-          loading="lazy"
-          decoding="async"
-          onError={fallbackThumb}
-          onLoad={(e) => {
-            if (e.currentTarget.naturalWidth <= 120) {
-              fallbackThumb();
-            }
-          }}
-          className="h-full w-full object-cover transition-transform duration-500 group-hover:scale-[1.03]"
-        />
+      <div>
+        {/* Thumbnail Container 16:9 */}
+        <button
+          type="button"
+          onClick={() => onWatch(video)}
+          aria-label={`Reproducir ${video.title}`}
+          className="relative block w-full aspect-video rounded-DEFAULT overflow-hidden bg-surface-container-lowest mb-space-md text-left cursor-pointer"
+        >
+          <img
+            src={thumbUrl}
+            alt={`Miniatura de ${video.title}`}
+            width={480}
+            height={270}
+            loading="lazy"
+            decoding="async"
+            onError={fallbackThumb}
+            onLoad={(e) => {
+              if (e.currentTarget.naturalWidth <= 120) {
+                fallbackThumb();
+              }
+            }}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
 
-        {/* Viñeta inferior cinematográfica */}
-        <div
-          aria-hidden="true"
-          className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/10 to-black/25 pointer-events-none"
-        />
+          {/* Category Tag Pill (Top Left) */}
+          <div className="absolute top-2.5 left-2.5 px-2.5 py-0.5 rounded bg-black/80 backdrop-blur-sm text-[10px] uppercase font-bold tracking-wider text-amber-400 shadow-sm">
+            {categoryLabel.split(' ')[0]}
+          </div>
 
-        {/* Etiqueta de idioma arriba a la izquierda */}
-        <span className="absolute top-2.5 left-2.5 inline-flex items-center rounded-md border border-white/15 bg-black/70 backdrop-blur-sm px-2 py-0.5 text-[11px] font-semibold tracking-wide text-[var(--text-primary)]">
-          {languageLabel}
-        </span>
+          {/* Language Pill (Top Right) */}
+          <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded bg-black/75 backdrop-blur-sm text-[10px] font-bold tracking-wider text-on-surface">
+            {languageLabel}
+          </div>
 
-        {/* Badge de duración exacta abajo a la derecha */}
-        <span className="font-mono-time absolute bottom-2.5 right-2.5 rounded-md border border-white/15 bg-black/85 px-2 py-0.5 text-xs font-semibold text-[#FFF4E0] shadow-sm">
-          {durationLabel}
-        </span>
-      </div>
+          {/* Duration Badge (Bottom Right) */}
+          <div className="absolute bottom-2.5 right-2.5 px-2 py-0.5 rounded bg-black/85 backdrop-blur-sm text-[11px] text-white font-bold tracking-tight shadow-md flex items-center gap-1 tabular-nums">
+            <span className="material-symbols-outlined text-[13px] text-amber-400">
+              schedule
+            </span>
+            {durationLabel}
+          </div>
 
-      {/* Información y Acciones */}
-      <div className="flex flex-1 flex-col justify-between p-4 gap-3.5">
-        <div className="space-y-1.5">
-          <h2 className="text-base font-semibold leading-snug text-[var(--text-primary)] line-clamp-2 min-h-[2.75rem]">
+          {/* Center Play Hover Overlay */}
+          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+            <div className="w-12 h-12 rounded-full bg-red-600 text-white flex items-center justify-center shadow-lg shadow-red-600/50 scale-90 group-hover:scale-100 transition-transform">
+              <span className="material-symbols-outlined text-[26px]">
+                play_arrow
+              </span>
+            </div>
+          </div>
+        </button>
+
+        {/* Video Metadata */}
+        <div className="flex flex-col gap-1 mb-space-md">
+          <h2 className="font-headline-sm text-[15px] text-on-surface font-semibold line-clamp-2 leading-snug group-hover:text-amber-300 transition-colors min-h-[2.5rem]">
             {video.title}
           </h2>
-          <div className="flex items-center justify-between gap-2 text-xs text-[var(--text-secondary)]">
-            <span className="inline-flex items-center gap-1.5 truncate">
-              <Tv className="h-3.5 w-3.5 shrink-0 text-[var(--accent-amber)]/80" />
-              <span className="truncate">{channelName}</span>
+          <div className="flex items-center gap-1.5 text-[12px] text-on-surface-variant pt-1">
+            <span className="text-amber-200 font-semibold truncate">
+              {channelName}
             </span>
-            {categoryLabel && (
-              <span className="shrink-0 text-[11px] text-[var(--text-muted)] hidden sm:inline">
-                {categoryLabel.split(' ')[0]}
-              </span>
-            )}
+            <span aria-hidden="true">•</span>
+            <span className="shrink-0">{languageLabel}</span>
           </div>
         </div>
+      </div>
 
-        {/* Botones por tarjeta */}
-        <div className="flex items-center gap-2 pt-1">
-          <button
-            type="button"
-            onClick={() => onWatch(video)}
-            aria-label={`Ver ahora: ${video.title}`}
-            className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl bg-gradient-to-r from-[var(--accent-amber)] to-[var(--accent-ember)] px-3.5 py-2 text-xs sm:text-sm font-bold text-[#140C05] shadow-[0_4px_16px_rgba(245,158,11,0.22)] hover:brightness-110 active:scale-[0.98] transition-all cursor-pointer"
-          >
-            <Play className="h-3.5 w-3.5 fill-current" />
-            <span>Ver ahora</span>
-          </button>
+      {/* Action Footer (Red Primary opens TheaterModal + Bookmark + Dismiss) */}
+      <div className="pt-space-sm flex items-center gap-space-sm">
+        <button
+          type="button"
+          onClick={() => onWatch(video)}
+          aria-label={`Ver ahora: ${video.title}`}
+          className="flex-1 py-2 px-space-md rounded-full bg-gradient-to-r from-red-600 to-red-500 text-white text-[12px] font-bold flex items-center justify-center gap-1.5 shadow-[0_2px_12px_rgba(255,0,0,0.35)] hover:brightness-110 transition-all active:scale-95 cursor-pointer"
+        >
+          <span className="material-symbols-outlined text-[18px]">
+            play_arrow
+          </span>
+          <span>Ver en YouTube</span>
+        </button>
 
-          <button
-            type="button"
-            onClick={() => onDismiss(video.id)}
-            aria-label={`Descartar ${video.title}`}
-            className="inline-flex items-center justify-center gap-1 rounded-xl border border-[var(--border-subtle)] bg-[var(--bg-surface-elevated)]/70 px-3 py-2 text-xs font-medium text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:border-[var(--border-hover)] hover:bg-[var(--bg-surface-elevated)] active:scale-[0.98] transition-all cursor-pointer"
+        <button
+          type="button"
+          onClick={() => setSavedForLater((prev) => !prev)}
+          aria-label={savedForLater ? 'Quitar de guardados' : 'Guardar plato'}
+          aria-pressed={savedForLater}
+          title={savedForLater ? 'Guardado' : 'Guardar para esta comida'}
+          className={`save-btn w-9 h-9 rounded-full bg-surface-container-highest flex items-center justify-center transition-colors shrink-0 cursor-pointer ${
+            savedForLater
+              ? 'text-amber-400'
+              : 'text-on-surface-variant hover:text-amber-400'
+          }`}
+        >
+          <span
+            className={`material-symbols-outlined text-[18px] ${
+              savedForLater ? 'material-symbols-filled' : ''
+            }`}
           >
-            <X className="h-3.5 w-3.5" />
-            <span>Descartar</span>
-          </button>
-        </div>
+            {savedForLater ? 'bookmark' : 'bookmark_border'}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => onDismiss(video.id)}
+          aria-label={`Descartar ${video.title}`}
+          title="Descartar esta opción"
+          className="dismiss-card-btn w-9 h-9 rounded-full bg-surface-container hover:bg-surface-container-highest text-on-surface-variant hover:text-red-400 transition-colors flex items-center justify-center shrink-0 cursor-pointer"
+        >
+          <span className="material-symbols-outlined text-[18px]">close</span>
+        </button>
       </div>
     </article>
   );
