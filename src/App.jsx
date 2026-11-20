@@ -1,9 +1,10 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Header } from './components/Header';
 import { FilterPanel } from './components/FilterPanel';
 import { VideoCard } from './components/VideoCard';
 import { VideoCardSkeleton } from './components/VideoCardSkeleton';
 import { TheaterModal } from './components/TheaterModal';
+import { HistoryModal } from './components/HistoryModal';
 import { Footer } from './components/Footer';
 import { DURATION_OPTIONS } from './data/mockVideos';
 import { useVideoRecommendations } from './hooks/useVideoRecommendations';
@@ -21,6 +22,7 @@ export function App() {
     fallbackNote,
     exhaustedAll,
     seenCount,
+    watchedHistory,
     activeVideo,
     justCleared,
     findVideos,
@@ -33,8 +35,9 @@ export function App() {
     resetSearch,
   } = useVideoRecommendations();
 
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
   const resultsRef = useRef(null);
-  const historyRef = useRef(null);
   const deckRef = useRef(null);
   const quickDurationTriggeredRef = useRef(false);
 
@@ -48,7 +51,15 @@ export function App() {
   // Atajo [ Espacio ] de escritorio para barajar 3 opciones
   useEffect(() => {
     const handleKeyDown = (e) => {
-      if (e.code !== 'Space' || !hasSearched || activeVideo || isLoading) return;
+      if (
+        e.code !== 'Space' ||
+        !hasSearched ||
+        activeVideo ||
+        isHistoryOpen ||
+        isLoading
+      ) {
+        return;
+      }
       const tag = e.target?.tagName;
       if (tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'BUTTON' || tag === 'A') {
         return;
@@ -58,7 +69,7 @@ export function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [hasSearched, activeVideo, isLoading, rotateThree]);
+  }, [hasSearched, activeVideo, isHistoryOpen, isLoading, rotateThree]);
 
   useEffect(() => {
     if (!quickDurationTriggeredRef.current) return;
@@ -89,23 +100,25 @@ export function App() {
     }
   };
 
-  const handleScrollToHistory = () => {
-    historyRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-  };
-
   const handleFocusFilters = () => {
     deckRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
+  const handleReplayFromHistory = (historyItem) => {
+    setIsHistoryOpen(false);
+    watchVideo(historyItem);
   };
 
   return (
     <div className="bg-background text-on-surface antialiased min-h-screen flex flex-col selection:bg-primary selection:text-on-primary">
       <Header
         activeDuration={filters.duration}
-        seenCount={seenCount}
+        watchedCount={watchedHistory.length}
         hasResults={hasSearched}
         onSelectQuickDuration={handleSelectQuickDuration}
         onResetHome={resetSearch}
-        onScrollToHistory={handleScrollToHistory}
+        onFocusFilters={handleFocusFilters}
+        onOpenHistory={() => setIsHistoryOpen(true)}
       />
 
       <main className="w-full flex-1 pt-20 bg-background">
@@ -299,22 +312,27 @@ export function App() {
 
               {/* CLEAN STREAMLINED SESSION STATUS BAR */}
               <section
-                ref={historyRef}
                 aria-label="Estado de sesión e historial"
                 className="w-full bg-surface-container-lowest/80 rounded-DEFAULT p-space-md flex flex-col sm:flex-row items-center justify-between gap-space-md border border-white/5"
               >
                 <div className="flex items-center gap-space-md flex-wrap justify-center sm:justify-start">
-                  <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsHistoryOpen(true)}
+                    className="flex items-center gap-2 rounded-full px-2.5 py-1 hover:bg-surface-container transition-colors cursor-pointer"
+                    aria-label="Abrir historial de videos vistos"
+                  >
                     <span className="material-symbols-outlined text-[16px] text-amber-400">
-                      check_circle
+                      history
                     </span>
                     <span className="text-[12px] text-on-surface font-semibold">
                       Historial de la sesión:{' '}
-                      <strong className="text-amber-400 font-bold">
-                        {seenCount} {seenCount === 1 ? 'video visto' : 'videos vistos'}
+                      <strong className="text-amber-400 font-bold underline decoration-amber-400/40 underline-offset-4">
+                        {watchedHistory.length}{' '}
+                        {watchedHistory.length === 1 ? 'video visto' : 'videos vistos'}
                       </strong>
                     </span>
-                  </div>
+                  </button>
                   <span className="hidden md:inline text-surface-variant">•</span>
                   <span className="text-[12px] text-on-surface-variant flex items-center gap-1">
                     <span className="material-symbols-outlined text-[15px] text-red-500">
@@ -334,7 +352,7 @@ export function App() {
                     id="clear-history-btn"
                     type="button"
                     onClick={clearHistory}
-                    disabled={seenCount === 0}
+                    disabled={seenCount === 0 && watchedHistory.length === 0}
                     className="flex items-center gap-1.5 px-space-md py-1.5 rounded-full bg-surface-container text-amber-400 hover:text-amber-300 hover:bg-surface-container-high text-[11px] font-bold transition-colors shrink-0 disabled:opacity-45 disabled:pointer-events-none cursor-pointer"
                   >
                     <span className="material-symbols-outlined text-[15px]">
@@ -352,6 +370,16 @@ export function App() {
       <Footer
         onResetHome={resetSearch}
         onFocusFilters={handleFocusFilters}
+      />
+
+      {/* Panel lateral de historial */}
+      <HistoryModal
+        isOpen={isHistoryOpen}
+        history={watchedHistory}
+        seenCount={seenCount}
+        onClose={() => setIsHistoryOpen(false)}
+        onReplay={handleReplayFromHistory}
+        onClearHistory={clearHistory}
       />
 
       {/* Reproductor modal / teatro integrado */}

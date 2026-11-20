@@ -6,11 +6,12 @@ const DURATION_BADGE_MAP = {
 
 export function Header({
   activeDuration,
-  seenCount,
+  watchedCount,
   hasResults,
   onSelectQuickDuration,
   onResetHome,
-  onScrollToHistory,
+  onFocusFilters,
+  onOpenHistory,
 }) {
   const navBtnClass = (isActive) =>
     isActive
@@ -80,36 +81,36 @@ export function Header({
           </button>
           <button
             type="button"
-            onClick={onScrollToHistory}
+            onClick={onOpenHistory}
             className={navBtnClass(false)}
           >
-            Historial{seenCount > 0 ? ` (${seenCount})` : ''}
+            Historial{watchedCount > 0 ? ` (${watchedCount})` : ''}
           </button>
         </nav>
 
-        {/* Indicador de sesión */}
+        {/* Indicadores de sesión sin cuenta ni perfil */}
         <div className="flex items-center gap-space-sm shrink-0">
           <button
             type="button"
-            onClick={onScrollToHistory}
-            aria-label="Ver estado de sesión e historial"
-            className="flex items-center gap-space-xs px-space-md py-space-sm rounded-full bg-surface-container text-[10px] font-bold tracking-wider uppercase text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all cursor-pointer"
+            onClick={onFocusFilters}
+            aria-label="Ir a filtros de duración"
+            className="hidden sm:flex items-center gap-space-xs px-space-md py-space-sm rounded-full bg-surface-container text-[10px] font-bold tracking-wider uppercase text-on-surface-variant hover:bg-surface-container-high hover:text-on-surface transition-all cursor-pointer"
           >
             <span className="material-symbols-outlined text-[16px] text-secondary">
               timer
             </span>
-            <span className="hidden md:inline">
-              {DURATION_BADGE_MAP[activeDuration] || '10–20 min'}
-            </span>
+            <span>{DURATION_BADGE_MAP[activeDuration] || '10–20 min'}</span>
           </button>
-          <div
-            aria-hidden="true"
-            className="w-8 h-8 rounded-full bg-primary flex items-center justify-center"
+
+          <button
+            type="button"
+            onClick={onOpenHistory}
+            aria-label="Abrir historial de videos vistos"
+            className="lg:hidden flex items-center gap-space-xs px-space-md py-space-sm rounded-full bg-surface-container text-[11px] font-bold text-amber-300 hover:bg-surface-container-high transition-all cursor-pointer"
           >
-            <span className="material-symbols-outlined text-on-primary text-[18px]">
-              person
-            </span>
-          </div>
+            <span className="material-symbols-outlined text-[16px]">history</span>
+            <span>Historial{watchedCount > 0 ? ` (${watchedCount})` : ''}</span>
+          </button>
         </div>
       </div>
     </header>

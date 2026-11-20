@@ -7,6 +7,9 @@ import {
   getSeenVideoIds,
   markVideoAsSeen,
   clearSeenHistory,
+  getWatchedHistory,
+  addToWatchedHistory,
+  clearWatchedHistory,
 } from '../services/historyStorage';
 
 /**
@@ -28,6 +31,7 @@ export function useVideoRecommendations() {
   const [isOfflineFallback, setIsOfflineFallback] = useState(false);
 
   const [seenIds, setSeenIds] = useState(() => getSeenVideoIds());
+  const [watchedHistory, setWatchedHistory] = useState(() => getWatchedHistory());
   const [activeVideo, setActiveVideo] = useState(null);
   const [justCleared, setJustCleared] = useState(false);
 
@@ -80,7 +84,9 @@ export function useVideoRecommendations() {
 
   const watchVideo = useCallback((video) => {
     const updatedSeen = markVideoAsSeen(video.id);
+    const updatedHistory = addToWatchedHistory(video);
     setSeenIds(updatedSeen);
+    setWatchedHistory(updatedHistory);
     setActiveVideo(video);
   }, []);
 
@@ -130,7 +136,9 @@ export function useVideoRecommendations() {
 
   const clearHistory = useCallback(() => {
     clearSeenHistory();
+    clearWatchedHistory();
     setSeenIds([]);
+    setWatchedHistory([]);
     setExhaustedAll(false);
     setJustCleared(true);
     window.setTimeout(() => setJustCleared(false), 2400);
@@ -138,7 +146,9 @@ export function useVideoRecommendations() {
 
   const clearAndSearch = useCallback(async () => {
     clearSeenHistory();
+    clearWatchedHistory();
     setSeenIds([]);
+    setWatchedHistory([]);
     setExhaustedAll(false);
     setIsLoading(true);
     setHasSearched(true);
@@ -187,6 +197,7 @@ export function useVideoRecommendations() {
     exhaustedAll,
     isOfflineFallback,
     seenCount: seenIds.length,
+    watchedHistory,
     activeVideo,
     justCleared,
     findVideos,
