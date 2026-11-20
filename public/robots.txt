@@ -1,4 +1,4 @@
 User-agent: *
 Allow: /
 
-Sitemap: https://que-veo-hoy.vercel.app/sitemap.xml
+Sitemap: https://queveohoy-sigma.vercel.app/sitemap.xml

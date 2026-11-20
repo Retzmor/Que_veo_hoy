@@ -9,8 +9,8 @@
       content="Elige rápido un video de YouTube según cuánto dura tu comida (5–10, 10–20 o 20–35 min), tu tema favorito e idioma. Cero algoritmo infinito, reprodúcelo al instante."
     />
     <meta name="robots" content="index, follow" />
-    <meta name="theme-color" content="#0d0b09" />
-    <link rel="canonical" href="https://que-veo-hoy.vercel.app/" />
+    <meta name="theme-color" content="#121317" />
+    <link rel="canonical" href="https://queveohoy-sigma.vercel.app/" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
     <!-- Open Graph / WhatsApp / Facebook -->
@@ -25,8 +25,11 @@
       property="og:description"
       content="3 recomendaciones exactas según la duración de tu comida, vibe e idioma. Reproductor teatro integrado para elegir antes de que se enfríe el plato."
     />
-    <meta property="og:url" content="https://que-veo-hoy.vercel.app/" />
-    <meta property="og:image" content="https://que-veo-hoy.vercel.app/og-image.jpg" />
+    <meta property="og:url" content="https://queveohoy-sigma.vercel.app/" />
+    <meta
+      property="og:image"
+      content="https://queveohoy-sigma.vercel.app/og-image.jpg"
+    />
     <meta property="og:image:width" content="1376" />
     <meta property="og:image:height" content="768" />
     <meta
@@ -44,15 +47,18 @@
       name="twitter:description"
       content="Elige un video de YouTube en segundos según el tiempo de tu comida (5 a 35 min), categoría e idioma."
     />
-    <meta name="twitter:image" content="https://que-veo-hoy.vercel.app/og-image.jpg" />
+    <meta
+      name="twitter:image"
+      content="https://queveohoy-sigma.vercel.app/og-image.jpg"
+    />
 
-    <!-- Datos Estructurados JSON-LD (Schema.org WebApplication) -->
+    <!-- Datos Estructurados JSON-LD: WebApplication -->
     <script type="application/ld+json">
       {
         "@context": "https://schema.org",
         "@type": "WebApplication",
         "name": "¿Qué Veo Hoy?",
-        "url": "https://que-veo-hoy.vercel.app/",
+        "url": "https://queveohoy-sigma.vercel.app/",
         "description": "Aplicación web gratuita para elegir rápido un video de YouTube según el tiempo de tu comida (5–10, 10–20 o 20–35 minutos), temática e idioma, con reproductor teatro integrado y memoria local.",
         "applicationCategory": "EntertainmentApplication",
         "operatingSystem": "Web",
@@ -69,6 +75,40 @@
           "Máximo 3 recomendaciones simultáneas sin scroll infinito",
           "Reproductor modal integrado de YouTube",
           "Historial local para evitar videos repetidos"
+        ]
+      }
+    </script>
+
+    <!-- Datos Estructurados JSON-LD: FAQPage -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "FAQPage",
+        "mainEntity": [
+          {
+            "@type": "Question",
+            "name": "¿Es completamente gratis usar ¿Qué Veo Hoy??",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "Sí. ¿Qué Veo Hoy? es una herramienta 100 % gratuita pensada para resolver en segundos qué ver mientras comes, sin suscripciones ni muros de pago."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Requiere registro o crear una cuenta?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "No requiere registro ni inicio de sesión. Tu historial de videos vistos y descartados se guarda únicamente en el almacenamiento local (localStorage) de tu navegador."
+            }
+          },
+          {
+            "@type": "Question",
+            "name": "¿Cómo filtra exactamente la duración de cada video?",
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": "La aplicación consulta la duración real en segundos de cada video mediante la API oficial de YouTube y filtra estrictamente los que encajan en tu ventana de comida: 5–10 min, 10–20 min o 20–35 min."
+            }
+          }
         ]
       }
     </script>

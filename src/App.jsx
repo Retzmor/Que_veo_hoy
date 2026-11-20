@@ -5,6 +5,9 @@ import { VideoCard } from './components/VideoCard';
 import { VideoCardSkeleton } from './components/VideoCardSkeleton';
 import { TheaterModal } from './components/TheaterModal';
 import { HistoryModal } from './components/HistoryModal';
+import { PrivacyModal } from './components/PrivacyModal';
+import { EditorialSection } from './components/EditorialSection';
+import { AdSlot } from './components/AdSlot';
 import { Footer } from './components/Footer';
 import { DURATION_OPTIONS } from './data/mockVideos';
 import { useVideoRecommendations } from './hooks/useVideoRecommendations';
@@ -36,6 +39,7 @@ export function App() {
   } = useVideoRecommendations();
 
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [isPrivacyOpen, setIsPrivacyOpen] = useState(false);
 
   const resultsRef = useRef(null);
   const deckRef = useRef(null);
@@ -56,6 +60,7 @@ export function App() {
         !hasSearched ||
         activeVideo ||
         isHistoryOpen ||
+        isPrivacyOpen ||
         isLoading
       ) {
         return;
@@ -69,7 +74,7 @@ export function App() {
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [hasSearched, activeVideo, isHistoryOpen, isLoading, rotateThree]);
+  }, [hasSearched, activeVideo, isHistoryOpen, isPrivacyOpen, isLoading, rotateThree]);
 
   useEffect(() => {
     if (!quickDurationTriggeredRef.current) return;
@@ -362,6 +367,12 @@ export function App() {
                   </button>
                 )}
               </section>
+
+              {/* Contenedor modular de monetización (separado con my-10 y fuera del reproductor) */}
+              <AdSlot />
+
+              {/* Sección editorial discreta para SEO orgánico */}
+              <EditorialSection />
             </div>
           </div>
         </div>
@@ -370,6 +381,7 @@ export function App() {
       <Footer
         onResetHome={resetSearch}
         onFocusFilters={handleFocusFilters}
+        onOpenPrivacy={() => setIsPrivacyOpen(true)}
       />
 
       {/* Panel lateral de historial */}
@@ -380,6 +392,12 @@ export function App() {
         onClose={() => setIsHistoryOpen(false)}
         onReplay={handleReplayFromHistory}
         onClearHistory={clearHistory}
+      />
+
+      {/* Modal de Política de Privacidad y Uso de API de YouTube */}
+      <PrivacyModal
+        isOpen={isPrivacyOpen}
+        onClose={() => setIsPrivacyOpen(false)}
       />
 
       {/* Reproductor modal / teatro integrado */}
