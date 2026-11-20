@@ -115,7 +115,7 @@ export function App() {
   };
 
   return (
-    <div className="bg-background text-on-surface antialiased min-h-screen flex flex-col selection:bg-primary selection:text-on-primary">
+    <div className="bg-background text-on-surface antialiased min-h-screen overflow-x-hidden overflow-y-auto flex flex-col selection:bg-primary selection:text-on-primary">
       <Header
         activeDuration={filters.duration}
         watchedCount={watchedHistory.length}
@@ -129,7 +129,7 @@ export function App() {
       <main className="w-full flex-1 pt-20 bg-background">
         <div className="max-w-[1280px] mx-auto px-margin md:px-margin-tablet lg:px-margin-desktop py-space-lg">
           <div className="flex flex-col w-full">
-            <div className="relative w-full overflow-hidden">
+            <div className="relative w-full overflow-x-clip">
               {/* Top Soft Ambient Spotlight */}
               <div
                 aria-hidden="true"

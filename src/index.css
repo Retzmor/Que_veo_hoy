@@ -76,15 +76,25 @@
 }
 
 @layer base {
-  html,
+  html {
+    margin: 0;
+    padding: 0;
+    height: auto;
+    overflow-x: clip;
+  }
+
   body {
     margin: 0;
     padding: 0;
+    min-height: 100%;
     background-color: #121317;
     color: #e3e2e8;
     font-family: 'Space Grotesk', system-ui, sans-serif;
-    overscroll-behavior: none;
-    overflow-x: hidden;
+    overflow-x: clip;
+  }
+
+  #root {
+    min-height: 100vh;
   }
 }
 

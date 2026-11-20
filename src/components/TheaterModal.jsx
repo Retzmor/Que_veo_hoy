@@ -4,10 +4,12 @@ export function TheaterModal({ video, onClose }) {
   const closeButtonRef = useRef(null);
 
   useEffect(() => {
-    if (!video) return undefined;
+    if (!video) {
+      document.body.style.overflow = '';
+      return undefined;
+    }
 
     const previouslyFocused = document.activeElement;
-    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     closeButtonRef.current?.focus();
 
@@ -19,7 +21,7 @@ export function TheaterModal({ video, onClose }) {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
       if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
         previouslyFocused.focus();

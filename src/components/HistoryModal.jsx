@@ -26,10 +26,12 @@ export function HistoryModal({
   const closeButtonRef = useRef(null);
 
   useEffect(() => {
-    if (!isOpen) return undefined;
+    if (!isOpen) {
+      document.body.style.overflow = '';
+      return undefined;
+    }
 
     const previouslyFocused = document.activeElement;
-    const previousOverflow = document.body.style.overflow;
     document.body.style.overflow = 'hidden';
     closeButtonRef.current?.focus();
 
@@ -41,7 +43,7 @@ export function HistoryModal({
 
     window.addEventListener('keydown', handleKeyDown);
     return () => {
-      document.body.style.overflow = previousOverflow;
+      document.body.style.overflow = '';
       window.removeEventListener('keydown', handleKeyDown);
       if (previouslyFocused && typeof previouslyFocused.focus === 'function') {
         previouslyFocused.focus();
