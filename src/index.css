@@ -1,0 +1,127 @@
+@import "tailwindcss";
+
+:root {
+  --bg-canvas: #0d0b09;
+  --bg-surface: #161310;
+  --bg-surface-elevated: #201b16;
+  --bg-pill: #1b1713;
+  --bg-theater: rgba(8, 6, 5, 0.94);
+
+  --border-subtle: rgba(245, 224, 190, 0.1);
+  --border-hover: rgba(245, 224, 190, 0.22);
+  --border-warm: rgba(245, 158, 11, 0.45);
+
+  --text-primary: #f7f1e8;
+  --text-secondary: #b9aba0;
+  --text-muted: #7f7267;
+
+  --accent-amber: #f59e0b;
+  --accent-ember: #ea580c;
+  --accent-cinema: #e5484d;
+
+  --font-display: 'Fraunces', Georgia, serif;
+  --font-sans: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: var(--bg-canvas);
+  color: var(--text-primary);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
+}
+
+/* Warm ambient cinema lighting & subtle grain */
+.cinema-backdrop {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background:
+    radial-gradient(65% 45% at 50% -10%, rgba(245, 158, 11, 0.11) 0%, rgba(234, 88, 12, 0.04) 45%, transparent 75%),
+    radial-gradient(40% 35% at 85% 85%, rgba(229, 72, 77, 0.05) 0%, transparent 70%);
+}
+
+.cinema-grain {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+  opacity: 0.03;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+.font-display {
+  font-family: var(--font-display);
+}
+
+.font-mono-time {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+}
+
+/* Custom focus ring for high-contrast accessibility */
+:focus-visible {
+  outline: 2px solid var(--accent-amber);
+  outline-offset: 2px;
+}
+
+@keyframes cardEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes modalFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes modalScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-card-enter {
+  animation: cardEnter 280ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.animate-modal-backdrop {
+  animation: modalFadeIn 200ms ease-out both;
+}
+
+.animate-modal-panel {
+  animation: modalScaleIn 240ms cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-card-enter,
+  .animate-modal-backdrop,
+  .animate-modal-panel {
+    animation: none;
+  }
+}
